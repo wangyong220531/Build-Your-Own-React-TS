@@ -21,7 +21,7 @@ export interface Props {
     [key: string]: object
 }
 
-function createDOM(fiber: Fiber): HTMLElement | Text | undefined{
+function createDOM(fiber: Fiber): HTMLElement | Text | undefined {
     if (!fiber.type) {
         return
     }
@@ -131,6 +131,7 @@ function commitWork(fiber?: Fiber | null) {
     }
 
     let domParentFiber: Fiber = fiber.parent!
+
     while (!domParentFiber.dom) {
         domParentFiber = domParentFiber.parent!
     }
@@ -139,9 +140,13 @@ function commitWork(fiber?: Fiber | null) {
 
     if (fiber.effectTag === "PLACEMENT" && fiber.dom) {
         domParent.appendChild(fiber.dom)
-    } else if (fiber.effectTag === "DELETION" && fiber.dom) {
+    }
+
+    if (fiber.effectTag === "DELETION" && fiber.dom) {
         commitDeletion(fiber, domParent)
-    } else if (fiber.effectTag === "UPDATE" && fiber.dom) {
+    }
+
+    if (fiber.effectTag === "UPDATE" && fiber.dom) {
         updateDOM(fiber.dom, fiber.alternate!.props, fiber.props)
     }
 
@@ -220,7 +225,6 @@ interface Action {
 }
 
 export function useState<T>(init: T) {
-
     // 旧hook
     const oldHook: Hook | undefined | FunctionComponentHook = wipFiber?.alternate?.hooks?.[hookIndex]
 
@@ -260,10 +264,9 @@ function reconcileChildren(wipFiber: Fiber, elements: Element[]) {
     let prevSibling: Fiber | null = null
 
     while (index < elements.length || oldFiber != null) {
+        
         const element = elements[index]
-
         const sameType = oldFiber != null && element != null && oldFiber.type === element.type
-
         let newFiber: Fiber | null = null
 
         if (sameType) {
