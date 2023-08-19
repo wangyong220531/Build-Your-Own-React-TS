@@ -2,7 +2,7 @@ import { VNode } from "./createElement"
 
 interface Fiber {
     type?: string
-    props: Props
+    props?: Props
     dom?: HTMLElement | null
     parent?: Fiber | null
     alternate?: Fiber | null
@@ -25,15 +25,12 @@ function createDOM(fiber: Fiber): HTMLElement | Text | undefined {
     if (!fiber.type) {
         return
     }
-
     const dom: HTMLElement | Text = fiber.type === "TEXT_ELEMENT" ? document.createTextNode("") : document.createElement(fiber.type)
-
     Object.keys(fiber.props)
         .filter(key => key !== "children")
         .forEach(key => {
             dom[key] = fiber.props[key]
         })
-
     return dom
 }
 
@@ -43,7 +40,7 @@ let currentRoot: Fiber | null = null
 let deletion: Fiber[] = []
 
 function render(element: VNode, container: HTMLElement) {
-    let deletions: Fiber[] = []
+    const deletions: Fiber[] = []
     wipRoot = {
         dom: container,
         props: {
@@ -68,7 +65,6 @@ function commitRoot() {
 
 function updateDOM(dom: HTMLElement, prevProps: Props, nextProps: Props) {
     const isEvent = (key: string) => key.startsWith("on")
-
     // 删除旧props
     Object.keys(prevProps)
         .filter(key => key !== "children" && !isEvent(key))
@@ -76,7 +72,6 @@ function updateDOM(dom: HTMLElement, prevProps: Props, nextProps: Props) {
         .forEach(key => {
             dom[key] = ""
         })
-
     // 设置新props
     Object.keys(nextProps)
         .filter(key => key !== "children" && !isEvent(key))
@@ -84,7 +79,6 @@ function updateDOM(dom: HTMLElement, prevProps: Props, nextProps: Props) {
         .forEach(key => {
             dom[key] = nextProps[key]
         })
-
     // 删除旧事件
     Object.keys(prevProps)
         .filter(isEvent)
@@ -93,7 +87,6 @@ function updateDOM(dom: HTMLElement, prevProps: Props, nextProps: Props) {
             const eventType = key.toLowerCase().substring(2)
             dom?.removeEventListener(eventType, prevProps[key])
         })
-
     // 添加新事件
     Object.keys(nextProps)
         .filter(isEvent)
@@ -113,11 +106,9 @@ function workLoop(deadline: any) {
         // 检查线程是否繁忙
         shouldYield = deadline.timeRemaining() < 1
     }
-
     if (!nextUnitOfWork && wipRoot) {
         commitRoot()
     }
-
     // 重新请求
     requestIdleCallback(workLoop)
 }
@@ -129,27 +120,20 @@ function commitWork(fiber?: Fiber | null) {
     if (!fiber) {
         return
     }
-
     let domParentFiber: Fiber = fiber.parent!
-
     while (!domParentFiber.dom) {
         domParentFiber = domParentFiber.parent!
     }
-
     const domParent = domParentFiber.dom
-
     if (fiber.effectTag === "PLACEMENT" && fiber.dom) {
         domParent.appendChild(fiber.dom)
     }
-
     if (fiber.effectTag === "DELETION" && fiber.dom) {
         commitDeletion(fiber, domParent)
     }
-
     if (fiber.effectTag === "UPDATE" && fiber.dom) {
         updateDOM(fiber.dom, fiber.alternate!.props, fiber.props)
     }
-
     commitWork(fiber.child)
     commitWork(fiber.sibling)
 }
@@ -264,11 +248,9 @@ function reconcileChildren(wipFiber: Fiber, elements: Element[]) {
     let prevSibling: Fiber | null = null
 
     while (index < elements.length || oldFiber != null) {
-        
         const element = elements[index]
         const sameType = oldFiber != null && element != null && oldFiber.type === element.type
         let newFiber: Fiber | null = null
-
         if (sameType) {
             newFiber = {
                 type: oldFiber?.type,
@@ -279,7 +261,6 @@ function reconcileChildren(wipFiber: Fiber, elements: Element[]) {
                 effectTag: "UPDATE"
             }
         }
-
         if (element && !sameType) {
             newFiber = {
                 type: element.type,
@@ -290,22 +271,18 @@ function reconcileChildren(wipFiber: Fiber, elements: Element[]) {
                 effectTag: "PLACEMENT"
             }
         }
-
         if (oldFiber && !sameType) {
             oldFiber.effectTag = "DELETION"
             deletion.push(oldFiber)
         }
-
         if (oldFiber) {
             oldFiber = oldFiber.sibling
         }
-
         if (index === 0) {
             wipFiber.child = newFiber
         } else {
             prevSibling!.sibling = newFiber
         }
-
         prevSibling = newFiber
         index++
     }
