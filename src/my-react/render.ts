@@ -1,7 +1,9 @@
+import { VNode } from "./createElement"
+
 interface Fiber {
     type?: string
     props: Props
-    dom: Props
+    dom?: HTMLElement | null
     parent?: Fiber | null
     alternate?: Fiber | null
     child?: Fiber | null
@@ -40,7 +42,7 @@ let wipRoot: Fiber | null = null
 let currentRoot: Fiber | null = null
 let deletion: Fiber[] = []
 
-function render(element: Element, container: HTMLElement) {
+function render(element: VNode, container: HTMLElement) {
     let deletions: Fiber[] = []
     wipRoot = {
         dom: container,
@@ -91,6 +93,7 @@ function updateDOM(dom: HTMLElement, prevProps: Props, nextProps: Props) {
             const eventType = key.toLowerCase().substring(2)
             dom?.removeEventListener(eventType, prevProps[key])
         })
+
     // 添加新事件
     Object.keys(nextProps)
         .filter(isEvent)
@@ -128,7 +131,6 @@ function commitWork(fiber?: Fiber | null) {
     }
 
     let domParentFiber: Fiber = fiber.parent!
-
     while (!domParentFiber.dom) {
         domParentFiber = domParentFiber.parent!
     }
@@ -187,9 +189,7 @@ function updateFunctionComponent(fiber: Fiber) {
     wipFiber = fiber
     hookIndex = 0
     wipFiber.hooks = []
-
     const children = [fiber.type(fiber.props)]
-
     reconcileChildren(fiber, children)
 }
 
@@ -209,7 +209,7 @@ interface Element {
 }
 
 interface Hook {
-    state: object
+    state: any
     queue: SetStateAction[]
 }
 
@@ -220,6 +220,7 @@ interface Action {
 }
 
 export function useState<T>(init: T) {
+
     // 旧hook
     const oldHook: Hook | undefined | FunctionComponentHook = wipFiber?.alternate?.hooks?.[hookIndex]
 
