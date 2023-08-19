@@ -15,7 +15,6 @@ const Counter = () => {
 
 const element = createElement(Counter);
 const container = document.getElementById('root')!;
-console.log(render);
 
 render(element, container);
 

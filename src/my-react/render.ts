@@ -1,7 +1,7 @@
 interface Fiber {
-    type?: any
-    props: any
-    dom?: HTMLElement | Text | null
+    type?: string
+    props: Props
+    dom: Props
     parent?: Fiber | null
     alternate?: Fiber | null
     child?: Fiber | null
@@ -11,21 +11,27 @@ interface Fiber {
 }
 
 interface FunctionComponentHook {
-    state: any
-    queue: Function[]
+    state: object
+    queue: object[]
 }
 
-interface Props {
-    [key: string]: any
+export interface Props {
+    [key: string]: object
 }
 
-function createDOM(fiber: Fiber): Text | HTMLElement {
-    const dom = fiber.type === "TEXT_ELEMENT" ? document.createTextNode("") : document.createElement(fiber.type)
+function createDOM(fiber: Fiber): HTMLElement | Text | undefined{
+    if (!fiber.type) {
+        return
+    }
+
+    const dom: HTMLElement | Text = fiber.type === "TEXT_ELEMENT" ? document.createTextNode("") : document.createElement(fiber.type)
+
     Object.keys(fiber.props)
         .filter(key => key !== "children")
         .forEach(key => {
             dom[key] = fiber.props[key]
         })
+
     return dom
 }
 
@@ -49,7 +55,7 @@ function render(element: Element, container: HTMLElement) {
 }
 
 function commitRoot() {
-    let deletion: Fiber[] = []
+    const deletion: Fiber[] = []
     deletion.forEach(item => {
         commitWork(item)
     })
@@ -58,8 +64,9 @@ function commitRoot() {
     wipRoot = null
 }
 
-function updateDOM(dom: any, prevProps: Props, nextProps: Props) {
+function updateDOM(dom: HTMLElement, prevProps: Props, nextProps: Props) {
     const isEvent = (key: string) => key.startsWith("on")
+
     // 删除旧props
     Object.keys(prevProps)
         .filter(key => key !== "children" && !isEvent(key))
@@ -67,6 +74,7 @@ function updateDOM(dom: any, prevProps: Props, nextProps: Props) {
         .forEach(key => {
             dom[key] = ""
         })
+
     // 设置新props
     Object.keys(nextProps)
         .filter(key => key !== "children" && !isEvent(key))
@@ -74,6 +82,7 @@ function updateDOM(dom: any, prevProps: Props, nextProps: Props) {
         .forEach(key => {
             dom[key] = nextProps[key]
         })
+
     // 删除旧事件
     Object.keys(prevProps)
         .filter(isEvent)
@@ -195,19 +204,19 @@ function updateHostComponent(fiber: Fiber) {
 }
 
 interface Element {
-    type: any
-    props: any
+    type: string
+    props: Props
 }
 
 interface Hook {
-    state: any
+    state: object
     queue: SetStateAction[]
 }
 
 type SetStateAction = (prevState: any) => any
 
 interface Action {
-    (prevState: any): any
+    (prevState: string | object): string | object
 }
 
 export function useState<T>(init: T) {

@@ -1,5 +1,7 @@
+import { Props } from "./render"
+
 interface VNode {
-    type: string | Function
+    type: string | Props
     props: VNodeProps
 }
 
@@ -18,7 +20,7 @@ interface TextVNodeProps {
     children: never[]
 }
 
-function createElement(type: string | Function, props?: VNodeProps | null, ...children: any[]): VNode {
+function createElement(type: string | Props, props: VNodeProps | null, ...children: any[]): VNode {
     return {
         type,
         props: {
